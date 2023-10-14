@@ -24,9 +24,11 @@ func main() {
 	r.Handle("/app/*", http.StripPrefix("/app", fs))
 	r.Handle("/app", http.StripPrefix("/app", fs))
 
-	r.Get("/healthz", healthzHandler)
-	r.Get("/metrics", apiCfg.metricsHandler)
-	r.Handle("/reset", http.HandlerFunc(apiCfg.resetMetricsHandler))
+	r.Route("/api", func(r chi.Router) {
+		r.Get("/healthz", healthzHandler)
+		r.Get("/metrics", apiCfg.metricsHandler)
+		r.Handle("/reset", http.HandlerFunc(apiCfg.resetMetricsHandler))
+	})
 	corsMux := middlewareCors(r)
 	server := &http.Server{
 		Handler: corsMux,
