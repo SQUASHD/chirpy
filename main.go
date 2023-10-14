@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 )
 
@@ -17,13 +18,16 @@ func main() {
 		fileserverHits: 0,
 	}
 
-	mux := http.NewServeMux()
-	fs := http.FileServer(http.Dir(filepathRoot))
-	mux.Handle("/app/", http.StripPrefix("/app/", apiCfg.middlewareMetricsInc(fs)))
-	mux.Handle("/healthz", http.HandlerFunc(healthzHandler))
-	mux.Handle("/metrics", http.HandlerFunc(apiCfg.metricsHandler))
-	mux.Handle("/reset", http.HandlerFunc(apiCfg.resetMetricsHandler))
-	corsMux := middlewareCors(mux)
+	r := chi.NewRouter()
+	fs := apiCfg.middlewareMetricsInc(http.FileServer(http.Dir(filepathRoot)))
+
+	r.Handle("/app/*", http.StripPrefix("/app", fs))
+	r.Handle("/app", http.StripPrefix("/app", fs))
+
+	r.Get("/healthz", healthzHandler)
+	r.Get("/metrics", apiCfg.metricsHandler)
+	r.Handle("/reset", http.HandlerFunc(apiCfg.resetMetricsHandler))
+	corsMux := middlewareCors(r)
 	server := &http.Server{
 		Handler: corsMux,
 		Addr:    "localhost:" + port,
