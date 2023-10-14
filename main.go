@@ -18,42 +18,39 @@ func main() {
 		fileserverHits: 0,
 	}
 
-	r := chi.NewRouter()
-	fs := apiCfg.middlewareMetricsInc(http.FileServer(http.Dir(filepathRoot)))
+	router := chi.NewRouter()
+	fs := apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
+	router.Handle("/app/*", fs)
+	router.Handle("/app", fs)
 
-	r.Handle("/app/*", http.StripPrefix("/app", fs))
-	r.Handle("/app", http.StripPrefix("/app", fs))
+	apiRouter := chi.NewRouter()
+	apiRouter.Get("/healthz", handlerReadiness)
+	apiRouter.Get("/metrics", apiCfg.handlerMetrics)
+	apiRouter.Get("/reset", apiCfg.handlerReset)
+	router.Mount("/api", apiRouter)
 
-	r.Route("/api", func(r chi.Router) {
-		r.Get("/healthz", healthzHandler)
-		r.Get("/metrics", apiCfg.metricsHandler)
-		r.Handle("/reset", http.HandlerFunc(apiCfg.resetMetricsHandler))
+	adminRouter := chi.NewRouter()
+	adminRouter.Get("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+		htmlContent := fmt.Sprintf(`
+        <html>
+        <body>
+            <h1>Welcome, Chirpy Admin</h1>
+            <p>Chirpy has been visited %d times!</p>
+        </body>
+        </html>
+    `, apiCfg.fileserverHits)
+
+		w.Write([]byte(htmlContent))
 	})
-	corsMux := middlewareCors(r)
+
+	router.Mount("/admin", adminRouter)
+	corsMux := middlewareCors(router)
 	server := &http.Server{
 		Handler: corsMux,
 		Addr:    "localhost:" + port,
 	}
 	fmt.Printf("Server listening on port %s\n", port)
 	server.ListenAndServe()
-}
-
-func healthzHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
-}
-
-func (c *apiConfig) metricsHandler(w http.ResponseWriter, r *http.Request) {
-	hits := c.fileserverHits
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Hits: %d", hits)))
-}
-
-func (c *apiConfig) resetMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	c.fileserverHits = 0
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
 }
