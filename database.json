@@ -1,1 +1,1 @@
-{"chirps":{"1":{"author_id":1,"id":1,"body":"I'm the one who knocks!"}},"users":{"1":{"id":1,"email":"walt@breakingbad.com","password":"$2a$10$hpJGt9DjPGnGtCZzPe9/Se8C1WK5GSRd7JL/x/kRodo0OCtMNQJ6O"},"2":{"id":2,"email":"skyler@breakingbad.com","password":"$2a$10$UAPv/wSjIR8LpnQa5akul.nyeUIDu1gWaACUKIdU23Db7s/h6AA6K"}},"revoked_tokens":{}}
+{"chirps":{},"users":{"1":{"id":1,"email":"walt@breakingbad.com","password":"$2a$10$cXDaJ/tkMZYMh05cSFrN0eKXuukf18J8OuDuYrc6Ko.1MaO85XZgy","is_chirpy_red":true}},"revoked_tokens":{}}
