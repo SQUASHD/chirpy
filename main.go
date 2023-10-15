@@ -14,6 +14,7 @@ type apiConfig struct {
 	fileserverHits int
 	DB             *database.DB
 	jwtSecret      string
+	polkaApiKey    string
 }
 
 var dbg = flag.Bool("debug", false, "Enable debug mode")
@@ -38,6 +39,7 @@ func main() {
 		fileserverHits: 0,
 		DB:             db,
 		jwtSecret:      os.Getenv("JWT_SECRET"),
+		polkaApiKey:    os.Getenv("POLKA_API_KEY"),
 	}
 
 	if err != nil {

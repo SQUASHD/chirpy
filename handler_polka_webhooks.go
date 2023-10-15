@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"github.com/squashd/chirpy/internal/auth"
 	"net/http"
 	"os"
 )
@@ -21,9 +22,20 @@ func (cfg *apiConfig) handlerPolkaWebhooks(w http.ResponseWriter, r *http.Reques
 		IsChirpyRed bool   `json:"is_chirpy_red"`
 	}
 
+	apiKey, err := auth.GetApiKey(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if apiKey != cfg.polkaApiKey {
+		respondWithError(w, http.StatusUnauthorized, "Invalid API key")
+		return
+	}
+
 	decoder := json.NewDecoder(r.Body)
 	params := parameter{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
 		return

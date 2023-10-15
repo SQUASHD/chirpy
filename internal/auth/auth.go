@@ -12,7 +12,7 @@ import (
 )
 
 // ErrNoAuthHeaderIncluded -
-var ErrNoAuthHeaderIncluded = errors.New("not auth header included in request")
+var ErrNoAuthHeaderIncluded = errors.New("no auth header included in request")
 
 // HashPassword -
 func HashPassword(password string) (string, error) {
@@ -109,4 +109,17 @@ func GetJWTIssuer(tokenString, tokenSecret string) (string, error) {
 		return "", errors.New("malformed issuer")
 	}
 	return issuer, nil
+}
+
+func GetApiKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", ErrNoAuthHeaderIncluded
+	}
+	splitAuth := strings.Split(authHeader, " ")
+	if len(splitAuth) < 2 || strings.ToLower(splitAuth[0]) != "apikey" {
+		return "", errors.New("malformed authorization header")
+	}
+
+	return splitAuth[1], nil
 }
