@@ -16,6 +16,23 @@ type Chirp struct {
 }
 
 func (cfg *apiConfig) handlerChirpsGet(w http.ResponseWriter, r *http.Request) {
+	s := r.URL.Query().Get("author_id")
+	
+	if s != "" {
+		authorId, err := strconv.Atoi(s)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid author ID")
+			return
+		}
+		chirps, err := cfg.DB.GetChirpsByAuthorId(authorId)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "DB error")
+			return
+		}
+		respondWithJSON(w, http.StatusOK, chirps)
+		return
+	}
+
 	chirps, err := cfg.DB.GetChirps()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "DB error")
