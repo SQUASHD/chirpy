@@ -1,20 +1,16 @@
 package database
 
-type User struct {
-	ID             int    `json:"id"`
-	Email          string `json:"email"`
-	HashedPassword string `json:"password"`
-	IsChirpyRed    bool   `json:"is_chirpy_red"`
-}
+import "github.com/squashd/chirpy/internal/models"
 
-func (db *DB) CreateUser(email string, hashedPassword string) (User, error) {
+func (db *DB) CreateUser(email string, hashedPassword string) (models.User, error) {
 	dbStructure, err := db.loadDB()
+
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
 	id := len(dbStructure.Users) + 1
-	user := User{
+	user := models.User{
 		ID:             id,
 		Email:          email,
 		HashedPassword: hashedPassword,
@@ -24,30 +20,30 @@ func (db *DB) CreateUser(email string, hashedPassword string) (User, error) {
 
 	err = db.writeDB(dbStructure)
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
 	return user, nil
 }
 
-func (db *DB) GetUser(id int) (User, error) {
+func (db *DB) GetUser(id int) (models.User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
 	user, ok := dbStructure.Users[id]
 	if !ok {
-		return User{}, ErrNotExist
+		return models.User{}, ErrNotExist
 	}
 
 	return user, nil
 }
 
-func (db *DB) GetUserByEmail(email string) (User, error) {
+func (db *DB) GetUserByEmail(email string) (models.User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
 	for _, user := range dbStructure.Users {
@@ -56,18 +52,18 @@ func (db *DB) GetUserByEmail(email string) (User, error) {
 		}
 	}
 
-	return User{}, ErrNotExist
+	return models.User{}, ErrNotExist
 }
 
-func (db *DB) UpdateUser(id int, email, hashedPassword string) (User, error) {
+func (db *DB) UpdateUser(id int, email, hashedPassword string) (models.User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
 	user, ok := dbStructure.Users[id]
 	if !ok {
-		return User{}, ErrNotExist
+		return models.User{}, ErrNotExist
 	}
 
 	user.Email = email
@@ -76,21 +72,21 @@ func (db *DB) UpdateUser(id int, email, hashedPassword string) (User, error) {
 
 	err = db.writeDB(dbStructure)
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
 	return user, nil
 }
 
-func (db *DB) UpgradeUser(id int, isChirpyRed bool) (User, error) {
+func (db *DB) UpgradeUser(id int, isChirpyRed bool) (models.User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
 	user, ok := dbStructure.Users[id]
 	if !ok {
-		return User{}, ErrNotExist
+		return models.User{}, ErrNotExist
 	}
 
 	user.IsChirpyRed = isChirpyRed
@@ -98,7 +94,7 @@ func (db *DB) UpgradeUser(id int, isChirpyRed bool) (User, error) {
 
 	err = db.writeDB(dbStructure)
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
 
 	return user, nil

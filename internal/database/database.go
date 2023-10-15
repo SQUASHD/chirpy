@@ -3,6 +3,7 @@ package database
 import (
 	"encoding/json"
 	"errors"
+	"github.com/squashd/chirpy/internal/models"
 	"os"
 	"sync"
 	"time"
@@ -17,8 +18,8 @@ type DB struct {
 }
 
 type DBStructure struct {
-	Chirps map[int]Chirp        `json:"chirps"`
-	Users  map[int]User         `json:"users"`
+	Chirps map[int]models.Chirp `json:"chirps"`
+	Users  map[int]models.User  `json:"users"`
 	Tokens map[string]time.Time `json:"revoked_tokens"`
 }
 
@@ -34,8 +35,8 @@ func NewDB(path string, debug bool) (*DB, error) {
 
 func (db *DB) createDB() error {
 	dbStructure := DBStructure{
-		Chirps: map[int]Chirp{},
-		Users:  map[int]User{},
+		Chirps: map[int]models.Chirp{},
+		Users:  map[int]models.User{},
 		Tokens: map[string]time.Time{},
 	}
 	return db.writeDB(dbStructure)

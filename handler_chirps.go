@@ -5,40 +5,54 @@ import (
 	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/squashd/chirpy/internal/auth"
+	"github.com/squashd/chirpy/internal/models"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
-type Chirp struct {
-	AuthorID int    `json:"author_id"`
-	ID       int    `json:"id"`
-	Body     string `json:"body"`
-}
-
 func (cfg *apiConfig) handlerChirpsGet(w http.ResponseWriter, r *http.Request) {
-	s := r.URL.Query().Get("author_id")
-	
-	if s != "" {
-		authorId, err := strconv.Atoi(s)
+	authorIDStr := r.URL.Query().Get("author_id")
+	sortOrder := r.URL.Query().Get("sort")
+
+	var chirpSlice []models.Chirp
+	var err error
+
+	if authorIDStr != "" {
+		authorId, err := strconv.Atoi(authorIDStr)
 		if err != nil {
 			respondWithError(w, http.StatusBadRequest, "Invalid author ID")
 			return
 		}
-		chirps, err := cfg.DB.GetChirpsByAuthorId(authorId)
+		chirpSlice, err = cfg.DB.GetChirpsByAuthorId(authorId)
 		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "DB error")
+			respondWithError(w, http.StatusInternalServerError, "Error retrieving chirps by author")
 			return
 		}
-		respondWithJSON(w, http.StatusOK, chirps)
-		return
+	} else {
+		chirpSlice, err = cfg.DB.GetChirps()
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Error retrieving chirps")
+			return
+		}
 	}
 
-	chirps, err := cfg.DB.GetChirps()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "DB error")
 		return
 	}
-	respondWithJSON(w, http.StatusOK, chirps)
+
+	if sortOrder == "asc" {
+		sort.Slice(chirpSlice, func(i, j int) bool {
+			return chirpSlice[i].ID < chirpSlice[j].ID
+		})
+	} else if sortOrder == "desc" {
+		sort.Slice(chirpSlice, func(i, j int) bool {
+			return chirpSlice[i].ID > chirpSlice[j].ID
+		})
+	}
+
+	respondWithJSON(w, http.StatusOK, chirpSlice)
 }
 
 func (cfg *apiConfig) handlerChirpsPost(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +98,7 @@ func (cfg *apiConfig) handlerChirpsPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, Chirp{
+	respondWithJSON(w, http.StatusCreated, models.Chirp{
 		AuthorID: chirp.AuthorID,
 		ID:       chirp.ID,
 		Body:     chirp.Body,

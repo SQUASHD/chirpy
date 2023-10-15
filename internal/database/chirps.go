@@ -1,19 +1,15 @@
 package database
 
-type Chirp struct {
-	AuthorID int    `json:"author_id"`
-	ID       int    `json:"id"`
-	Body     string `json:"body"`
-}
+import "github.com/squashd/chirpy/internal/models"
 
-func (db *DB) CreateChirp(body string, userId int) (Chirp, error) {
+func (db *DB) CreateChirp(body string, userId int) (models.Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
-		return Chirp{}, err
+		return models.Chirp{}, err
 	}
 
 	id := len(dbStructure.Chirps) + 1
-	chirp := Chirp{
+	chirp := models.Chirp{
 		AuthorID: userId,
 		ID:       id,
 		Body:     body,
@@ -22,19 +18,19 @@ func (db *DB) CreateChirp(body string, userId int) (Chirp, error) {
 
 	err = db.writeDB(dbStructure)
 	if err != nil {
-		return Chirp{}, err
+		return models.Chirp{}, err
 	}
 
 	return chirp, nil
 }
 
-func (db *DB) GetChirps() ([]Chirp, error) {
+func (db *DB) GetChirps() ([]models.Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return nil, err
 	}
 
-	chirps := make([]Chirp, 0, len(dbStructure.Chirps))
+	chirps := make([]models.Chirp, 0, len(dbStructure.Chirps))
 	for _, chirp := range dbStructure.Chirps {
 		chirps = append(chirps, chirp)
 	}
@@ -42,13 +38,13 @@ func (db *DB) GetChirps() ([]Chirp, error) {
 	return chirps, nil
 }
 
-func (db *DB) GetChirpsByAuthorId(id int) ([]Chirp, error) {
+func (db *DB) GetChirpsByAuthorId(id int) ([]models.Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return nil, err
 	}
 
-	chirps := make([]Chirp, 0, len(dbStructure.Chirps))
+	chirps := make([]models.Chirp, 0, len(dbStructure.Chirps))
 	for _, chirp := range dbStructure.Chirps {
 		if chirp.AuthorID == id {
 			chirps = append(chirps, chirp)
@@ -58,15 +54,15 @@ func (db *DB) GetChirpsByAuthorId(id int) ([]Chirp, error) {
 	return chirps, nil
 }
 
-func (db *DB) GetChirp(id int) (Chirp, error) {
+func (db *DB) GetChirp(id int) (models.Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
-		return Chirp{}, err
+		return models.Chirp{}, err
 	}
 
 	chirp, ok := dbStructure.Chirps[id]
 	if !ok {
-		return Chirp{}, ErrNotExist
+		return models.Chirp{}, ErrNotExist
 	}
 
 	return chirp, nil

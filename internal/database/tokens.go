@@ -2,10 +2,6 @@ package database
 
 import "time"
 
-type Tokens struct {
-	Tokens map[string]time.Time `json:"revoked_tokens"`
-}
-
 func (db *DB) AddToken(token string) error {
 
 	dbStructure, err := db.loadDB()
